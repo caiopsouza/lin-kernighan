@@ -1,3 +1,4 @@
+use std::iter;
 use std::ops::Index;
 use std::fmt::{Display, Formatter};
 use std::fmt;
@@ -63,8 +64,14 @@ impl SymmetricMatrix {
     }
 
     fn cost(&self, path: &Path) -> u32 {
-        path.0.iter()
-            .map(|&edge| self[edge])
+        let vertices = path.vertices_visited();
+
+        vertices.iter().copied()
+            .zip(vertices.iter().copied()
+                .skip(1)
+                .chain(iter::once(vertices[0]))
+            )
+            .map(|edge| self[edge])
             .sum()
     }
 
@@ -74,7 +81,6 @@ impl SymmetricMatrix {
         let mut path = Path::from_size(size);
         let mut remainders: Vec<_> = (1..size).collect();
 
-        let mut i = 0usize;
         let mut vertex = 0usize;
 
         while !remainders.is_empty() {
@@ -86,15 +92,11 @@ impl SymmetricMatrix {
                 .unwrap();
 
             remainders.remove(remainder);
-
-            path[i] = (vertex, neighbor);
+            path.init_edge(vertex, neighbor);
             vertex = neighbor;
-
-            i += 1;
         }
 
-        path[i] = (vertex, 0);
-        
+        path.init_edge(vertex, 0);
         let cost = self.cost(&path);
         Route::new(cost, path)
     }
@@ -157,18 +159,6 @@ mod tests {
             (2.83000e+03 as i32, 3.84000e+02 as i32),
         ];
         SymmetricMatrix::from_euc_2d(&coords)
-    }
-
-    fn simple_matrix() -> SymmetricMatrix {
-        SymmetricMatrix {
-            size: 4,
-            data: vec![
-                0, 1, 2, 5,
-                1, 0, 7, 4,
-                2, 7, 0, 1,
-                5, 4, 1, 0,
-            ],
-        }
     }
 
     #[cfg(test)]
@@ -311,41 +301,32 @@ mod tests {
 
     #[cfg(test)]
     mod nearest_neighbor {
-        use crate::matrix::tests::simple_matrix;
         use crate::route::Route;
         use crate::path::Path;
+        use crate::matrix::SymmetricMatrix;
+
+        fn matrix() -> SymmetricMatrix {
+            SymmetricMatrix {
+                size: 5,
+                data: vec![
+                    0, 1, 2, 5, 3,
+                    1, 0, 7, 4, 8,
+                    2, 7, 0, 1, 3,
+                    5, 4, 1, 0, 5,
+                    3, 8, 3, 5, 0,
+                ],
+            }
+        }
 
         #[test]
         fn test() {
-            let matrix = simple_matrix();
+            let matrix = matrix();
             let actual = matrix.nearest_neighbor();
 
-            let expected = Path::new(vec![(0, 1), (1, 3), (3, 2), (2, 0)]);
-            let expected = Route::new(8, expected);
+            let expected = Path::new(vec![(1, 4), (0, 3), (3, 4), (1, 2), (0, 2)]);
+            let expected = Route::new(12, expected);
 
             assert_eq!(actual, expected);
-        }
-    }
-
-    #[cfg(test)]
-    mod cost {
-        use crate::matrix::tests::simple_matrix;
-        use crate::path::Path;
-
-        #[test]
-        fn seq() {
-            let graph = simple_matrix();
-            let path = Path::new(vec![(0usize, 1usize), (1, 2), (2, 3), (3, 0)]);
-            let actual = graph.cost(&path);
-            assert_eq!(actual, 14);
-        }
-
-        #[test]
-        fn alter() {
-            let graph = simple_matrix();
-            let path = Path::new(vec![(1usize, 3usize), (3, 0), (0, 2), (2, 1)]);
-            let actual = graph.cost(&path);
-            assert_eq!(actual, 18);
         }
     }
 }
