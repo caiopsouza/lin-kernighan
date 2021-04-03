@@ -1,0 +1,7 @@
+[package]
+name = "lin-kernighan"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+tsplib = { git = "https://github.com/caiopsouza/tsplib" }
