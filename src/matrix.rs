@@ -1,6 +1,7 @@
 use std::ops::Index;
 use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::iter;
 use tsplib::Tsp;
 use crate::route::Route;
 use crate::path::Path;
@@ -66,6 +67,17 @@ impl SymmetricMatrix {
         path.edges_visited()
             .map(|edge| self[edge])
             .sum()
+    }
+
+    pub fn sequential(&self) -> Route {
+        let path = (0..self.size - 1)
+            .map(|i| (i, (i + 2) % self.size));
+        let path = iter::once((1, self.size - 1)).chain(path);
+        let path = path.collect::<Vec<_>>();
+        let path = Path::new(path);
+
+        let cost = self.cost(&path);
+        Route { cost, path }
     }
 
     pub fn nearest_neighbor(&self) -> Route {

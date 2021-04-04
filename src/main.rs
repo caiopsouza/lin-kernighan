@@ -7,20 +7,25 @@ mod route;
 
 fn linker(tsp: &SymmetricMatrix) {
     let candidate_route = tsp.nearest_neighbor();
-    let candidate = candidate_route.path;
+    let mut candidate = candidate_route.path;
 
-    println!("{:?}", candidate);
-    println!("{}", candidate);
-    println!("{:?}", candidate.edges_visited().collect::<Vec<_>>());
+    println!("{:.25}", tsp);
+    println!("{:?}", candidate.vertices_visited().collect::<Vec<_>>());
 
     let mut edges_visited = candidate.edges_visited();
-    let edge_cost = tsp[edges_visited.next().unwrap()];
+    let (v0, v1) = edges_visited.next().unwrap();
+    let initial_cost = tsp[(v0, v1)];
 
-    for edge in edges_visited.skip(1) {
-        if tsp[edge] > edge_cost {
-            panic!("{:?}, {:?}, {}, {}\n", candidate.edges_visited().next().unwrap(), edge, tsp[edge], edge_cost);
+    for (c0, c1) in edges_visited.skip(1) {
+        let cost_decrease = initial_cost + tsp[(c0, c1)];
+        let cost_increase = tsp[(v0, c1)] + tsp[(c0, v1)];
+
+        if cost_decrease > cost_increase {
+            candidate.twist((v0, v1), (c0, c1));
+            break;
         }
     }
+    println!("{:?}", candidate.vertices_visited().collect::<Vec<_>>());
 }
 
 fn main() {
