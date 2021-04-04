@@ -1,16 +1,14 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use lin_kernighan::{load_problem, local_search};
+use lin_kernighan::{load_problem, gls};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let tsp = load_problem();
 
     let mut group = c.benchmark_group("PCB3038");
-    group.sample_size(100);
+    group.sample_size(10);
 
-    group.bench_function("PCB3038", |b| b.iter(|| {
-        let candidate_route = tsp.nearest_neighbor();
-        let mut candidate = candidate_route.path;
-        local_search(&tsp, &mut candidate);
+    group.bench_function("gls(10000)", |b| b.iter(|| {
+        gls(&tsp, 10000);
     }));
 
     group.finish();

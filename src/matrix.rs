@@ -18,11 +18,21 @@ impl SymmetricMatrix {
         Self { size, data }
     }
 
+    pub fn size(&self) -> usize {
+        self.size
+    }
+
     fn dist(one: (i32, i32), other: (i32, i32)) -> u32 {
         let dx = one.0 - other.0;
         let dy = one.1 - other.1;
         let res = f64::sqrt(((dx * dx) + (dy * dy)) as f64);
         res as u32
+    }
+
+    #[inline]
+    pub fn inc(&mut self, x: usize, y: usize, value: u32) {
+        let value = self[(x, y)] + value;
+        self.set(x, y, value);
     }
 
     fn from_euc_2d(coords: &[(i32, i32)]) -> Self {

@@ -104,9 +104,8 @@ impl Path
         }
 
         // Check if all vertices are present
-        let vertices = self.vertices_visited().collect::<Vec<_>>();
         for vertex in 0..self.0.len() {
-            if !vertices.iter().any(|&v| v == vertex) {
+            if !self.vertices_visited().any(|v| v == vertex) {
                 return dbg!(HamiltonianResult::NotVisited(vertex));
             }
         }
