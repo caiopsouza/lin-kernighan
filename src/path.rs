@@ -3,7 +3,7 @@ use std::{mem, fmt};
 use std::fmt::{Display, Formatter};
 
 #[derive(Eq, PartialEq, Debug)]
-pub struct Path(pub(crate) Vec<(usize, usize)>);
+pub struct Path(Vec<(usize, usize)>);
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone)]
 pub enum HamiltonianResult {

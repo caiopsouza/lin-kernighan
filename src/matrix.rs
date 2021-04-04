@@ -6,7 +6,7 @@ use tsplib::Tsp;
 use crate::route::Route;
 use crate::path::Path;
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Clone)]
 pub struct SymmetricMatrix {
     size: usize,
     data: Vec<u32>,
@@ -30,9 +30,10 @@ impl SymmetricMatrix {
     }
 
     #[inline]
-    pub fn inc(&mut self, x: usize, y: usize, value: u32) {
+    pub fn inc(&mut self, x: usize, y: usize, value: u32) -> u32 {
         let value = self[(x, y)] + value;
         self.set(x, y, value);
+        value
     }
 
     fn from_euc_2d(coords: &[(i32, i32)]) -> Self {
@@ -340,7 +341,7 @@ mod tests {
             let matrix = matrix();
             let actual = matrix.nearest_neighbor();
 
-            let expected = Path(vec![(1, 4), (0, 3), (3, 4), (1, 2), (0, 2)]);
+            let expected = Path::new(vec![(1, 4), (0, 3), (3, 4), (1, 2), (0, 2)]);
             let expected = Route::new(12, expected);
 
             assert_eq!(actual, expected);
