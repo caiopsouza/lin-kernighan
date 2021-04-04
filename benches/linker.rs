@@ -5,7 +5,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let tsp = load_problem();
 
     let mut group = c.benchmark_group("PCB3038");
-    group.sample_size(10);
+    group.sample_size(100);
 
     group.bench_function("PCB3038", |b| b.iter(|| {
         let candidate_route = tsp.nearest_neighbor();

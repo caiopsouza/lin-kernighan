@@ -46,8 +46,10 @@ impl Path
             return None;
         }
 
-        let res = self.0[*vertex];
-        let going_to = if res.0 != *coming_from { res.0 } else { res.1 };
+        debug_assert!(*vertex < self.0.len());
+
+        let going_to = unsafe { self.0.get_unchecked(*vertex) };
+        let going_to = if going_to.0 != *coming_from { going_to.0 } else { going_to.1 };
 
         *coming_from = *vertex;
         *vertex = going_to;
@@ -62,6 +64,16 @@ impl Path
             coming_from: self.0.len() + 1,
             vertex: 0,
         }
+    }
+
+    pub fn edges_visited_after(&self, coming_from: usize, vertex: usize) -> EdgesVisited {
+        let mut res = EdgesVisited {
+            path: &self,
+            coming_from,
+            vertex,
+        };
+        res.next();
+        res
     }
 
     /// Edges visited by the path starting in (0, x) and ending in (y, 0).
@@ -157,7 +169,7 @@ impl Display for Path {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug)]
 pub struct VerticesVisited<'a> {
     path: &'a Path,
     coming_from: usize,
@@ -167,12 +179,13 @@ pub struct VerticesVisited<'a> {
 impl<'a> Iterator for VerticesVisited<'a> {
     type Item = usize;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.path.next(&mut self.coming_from, &mut self.vertex)
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug)]
 pub struct EdgesVisited<'a> {
     path: &'a Path,
     coming_from: usize,
@@ -182,6 +195,7 @@ pub struct EdgesVisited<'a> {
 impl<'a> Iterator for EdgesVisited<'a> {
     type Item = (usize, usize);
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let going_to = self.path.next(&mut self.coming_from, &mut self.vertex)?;
         Some((self.coming_from, going_to))
