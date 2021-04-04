@@ -5,3 +5,16 @@ edition = "2018"
 
 [dependencies]
 tsplib = { git = "https://github.com/caiopsouza/tsplib" }
+
+[profile.test]
+opt-level = 3
+
+[profile.dev]
+opt-level = 3
+
+[dev-dependencies]
+criterion = "0.3.4"
+
+[[bench]]
+name = "linker"
+harness = false

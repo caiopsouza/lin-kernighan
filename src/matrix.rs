@@ -63,7 +63,7 @@ impl SymmetricMatrix {
         self.data[ib] = value;
     }
 
-    fn cost(&self, path: &Path) -> u32 {
+    pub fn cost(&self, path: &Path) -> u32 {
         path.edges_visited()
             .map(|edge| self[edge])
             .sum()

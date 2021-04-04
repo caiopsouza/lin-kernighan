@@ -114,17 +114,17 @@ impl Path
         debug_assert_eq!(*a0, v0);
         *a0 = i1;
 
-        let mut a0_next = &mut self[v0];
+        let a0_next = &mut self[v0];
         let a0_next = if a0_next.0 == i0 { &mut a0_next.0 } else { &mut a0_next.1 };
         debug_assert_eq!(*a0_next, i0);
         *a0_next = v1;
 
-        let mut a1 = &mut self[i1];
+        let a1 = &mut self[i1];
         let a1 = if a1.0 == v1 { &mut a1.0 } else { &mut a1.1 };
         debug_assert_eq!(*a1, v1);
         *a1 = i0;
 
-        let mut a1_next = &mut self[v1];
+        let a1_next = &mut self[v1];
         let a1_next = if a1_next.0 == i1 { &mut a1_next.0 } else { &mut a1_next.1 };
         debug_assert_eq!(*a1_next, i1);
         *a1_next = v0;
@@ -155,6 +155,7 @@ impl Display for Path {
     }
 }
 
+#[derive(Clone)]
 pub struct VerticesVisited<'a> {
     path: &'a Path,
     coming_from: usize,
@@ -169,6 +170,7 @@ impl<'a> Iterator for VerticesVisited<'a> {
     }
 }
 
+#[derive(Clone)]
 pub struct EdgesVisited<'a> {
     path: &'a Path,
     coming_from: usize,
