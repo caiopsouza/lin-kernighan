@@ -40,6 +40,7 @@ impl Path
         self.internal_init_edge(v1, v0);
     }
 
+    #[inline]
     fn next(&self, coming_from: &mut usize, vertex: &mut usize) -> Option<usize> {
         if *coming_from <= self.0.len() && *vertex == 0 {
             return None;
@@ -108,6 +109,7 @@ impl Path
     /// Twist two edges.
     /// Don't even try to understand this because I didn't.
     /// Let's just hope `is_hamiltonian` can find potential bugs.
+    #[inline]
     pub fn twist(&mut self, (i0, v0): (usize, usize), (i1, v1): (usize, usize)) {
         let a0 = &mut self[i0];
         let a0 = if a0.0 == v0 { &mut a0.0 } else { &mut a0.1 };

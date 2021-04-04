@@ -1,8 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use tsplib::Tsp;
-use lin_kernighan::matrix::SymmetricMatrix;
-use lin_kernighan::path::Path;
-use lin_kernighan::{load_problem, local_search_step};
+use lin_kernighan::{load_problem, local_search};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let tsp = load_problem();
@@ -13,7 +10,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     group.bench_function("PCB3038", |b| b.iter(|| {
         let candidate_route = tsp.nearest_neighbor();
         let mut candidate = candidate_route.path;
-        while local_search_step(&tsp, &mut candidate) {}
+        local_search(&tsp, &mut candidate);
     }));
 
     group.finish();
