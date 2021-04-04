@@ -1,4 +1,3 @@
-use std::iter;
 use std::ops::Index;
 use std::fmt::{Display, Formatter};
 use std::fmt;
@@ -64,13 +63,7 @@ impl SymmetricMatrix {
     }
 
     fn cost(&self, path: &Path) -> u32 {
-        let vertices = path.vertices_visited();
-
-        vertices.iter().copied()
-            .zip(vertices.iter().copied()
-                .skip(1)
-                .chain(iter::once(vertices[0]))
-            )
+        path.edges_visited()
             .map(|edge| self[edge])
             .sum()
     }
@@ -78,7 +71,7 @@ impl SymmetricMatrix {
     pub fn nearest_neighbor(&self) -> Route {
         let size = self.size;
 
-        let mut path = Path::from_size(size);
+        let mut path = Path::uninitialized(size);
         let mut remainders: Vec<_> = (1..size).collect();
 
         let mut vertex = 0usize;
@@ -98,6 +91,8 @@ impl SymmetricMatrix {
 
         path.init_edge(vertex, 0);
         let cost = self.cost(&path);
+
+        debug_assert!(path.is_hamiltonian());
         Route::new(cost, path)
     }
 }
@@ -323,7 +318,7 @@ mod tests {
             let matrix = matrix();
             let actual = matrix.nearest_neighbor();
 
-            let expected = Path::new(vec![(1, 4), (0, 3), (3, 4), (1, 2), (0, 2)]);
+            let expected = Path(vec![(1, 4), (0, 3), (3, 4), (1, 2), (0, 2)]);
             let expected = Route::new(12, expected);
 
             assert_eq!(actual, expected);
