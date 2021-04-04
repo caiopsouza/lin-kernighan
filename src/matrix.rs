@@ -30,9 +30,9 @@ impl SymmetricMatrix {
     }
 
     #[inline]
-    pub fn inc(&mut self, x: usize, y: usize, value: u32) -> u32 {
-        let value = self[(x, y)] + value;
-        self.set(x, y, value);
+    pub fn inc(&mut self, index: (usize, usize), value: u32) -> u32 {
+        let value = self[index] + value;
+        self.set(index, value);
         value
     }
 
@@ -45,7 +45,7 @@ impl SymmetricMatrix {
         for (i, point) in coords.iter().copied().enumerate() {
             for (j, neighbor) in coords.iter().copied().enumerate().skip(i + 1) {
                 let dist = Self::dist(point, neighbor);
-                res.set(i, j, dist);
+                res.set((i, j), dist);
             }
         }
 
@@ -66,7 +66,9 @@ impl SymmetricMatrix {
         i * self.size + j
     }
 
-    pub fn set(&mut self, i: usize, j: usize, value: u32) {
+    pub fn set(&mut self, index: (usize, usize), value: u32) {
+        let (i, j) = index;
+
         let ia = self.get_index(i, j);
         self.data[ia] = value;
 

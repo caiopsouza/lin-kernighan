@@ -10,10 +10,7 @@ pub mod route;
 
 fn local_search_step(tsp: &SymmetricMatrix, candidate: &mut Path, edge_buffer: &mut Vec<(usize, usize)>) -> Option<((usize, usize), (usize, usize))> {
     // TODO: Implement IndexedParallelIterator to avoid having to collect. `par_bridge` has worse performance.
-    edge_buffer.clear();
-    edge_buffer.extend(candidate.edges_visited());
-
-    edge_buffer
+    candidate.edges_visited_buffered(edge_buffer)
         .par_iter()
         .find_map_any(|&(v0, v1)| {
             let initial_cost = tsp[(v0, v1)];
@@ -50,40 +47,41 @@ pub fn gls(tsp: &SymmetricMatrix, steps: usize) -> Route {
     println!("{:.25}", tsp);
     println!("{:?}", route.path.vertices_visited().collect::<Vec<_>>());
 
-    let edge_buffer = &mut vec![(0usize, 0usize); tsp.size()];
+    let mut edge_buffer = vec![(0usize, 0usize); tsp.size()];
     let mut tsp_with_penalties = tsp.clone();
 
-    local_search(&tsp, &mut route, edge_buffer);
+    local_search(&tsp, &mut route, &mut edge_buffer);
     route.cost = tsp.cost(&route.path);
 
     let mut penalties = SymmetricMatrix::from_size(size);
     let penalty_factor = (0.3 * (route.cost as f64 / size as f64)) as u32;
 
     for _ in 0..steps {
-        let calc_utility = |e: (usize, usize)| -> i32 {
+        let calc_utility = |penalties: &SymmetricMatrix, e: (usize, usize)| -> i32 {
             (tsp[e] as f64 / (1.0 + penalties[e] as f64)) as i32
         };
 
         // Find the maximum utility
-        let max_utility = route.path.edges_visited()
-            .map(calc_utility)
+        // The edge buffer will have the correct edges because the last iteration of the local search doesn't change edges.
+        let max_utility = edge_buffer
+            .iter()
+            .copied()
+            .map(|e| calc_utility(&penalties, e))
             .max()
             .unwrap();
 
-        route.path.edges_visited()
-            .filter(|&e| calc_utility(e) == max_utility)
-            .collect::<Vec<_>>()
-            .iter().for_each(|&(e0, e1)|
-            {
-                let penalty = penalties.inc(e0, e1, 1);
-                tsp_with_penalties.set(e0, e1, tsp[(e0, e1)] + penalty_factor * penalty);
-            });
+        for &edge in edge_buffer.iter() {
+            if calc_utility(&penalties, edge) == max_utility {
+                let penalty = penalties.inc(edge, 1);
+                tsp_with_penalties.set(edge, tsp[edge] + penalty_factor * penalty);
+            }
+        }
 
-        local_search(&tsp_with_penalties, &mut route, edge_buffer);
+        local_search(&tsp_with_penalties, &mut route, &mut edge_buffer);
     }
 
     // Guarantee it's at least on a local minimum
-    local_search(&tsp, &mut route, edge_buffer);
+    local_search(&tsp, &mut route, &mut edge_buffer);
     route.cost = tsp.cost(&route.path);
 
     println!("{}", route.cost);

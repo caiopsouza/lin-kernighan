@@ -85,6 +85,12 @@ impl Path
         }
     }
 
+    pub fn edges_visited_buffered<'a>(&self, buffer: &'a mut Vec<(usize, usize)>) -> &'a Vec<(usize, usize)> {
+        buffer.clear();
+        buffer.extend(self.edges_visited());
+        buffer
+    }
+
     /// Check if the path is complete and Hamiltonian.
     /// This method is not optimized and is supposed to be used only for debug/sanity purposes.
     pub fn check_hamiltonian(&self) -> HamiltonianResult {
