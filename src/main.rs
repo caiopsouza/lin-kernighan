@@ -3,7 +3,6 @@ use tsplib::Tsp;
 use crate::matrix::SymmetricMatrix;
 use crate::path::Path;
 use crate::route::Route;
-use std::borrow::Borrow;
 
 pub mod matrix;
 pub mod path;
@@ -17,20 +16,20 @@ fn local_search_step(tsp: &SymmetricMatrix, candidate: &mut Path, edge_buffer: &
         .par_iter()
         .copied()
         .enumerate()
-        .find_map_any(|(i, (v0, v1))| {
-            let initial_cost = tsp[(v0, v1)];
+        .find_map_any(|(i, (a0, a1))| {
+            let initial_cost = tsp[(a0, a1)];
 
-            let neighbors = (edge_buffer.borrow() as &Vec<(usize, usize)>)
+            let neighbors = (&*edge_buffer)
                 .into_iter()
                 .copied()
                 .skip(i + 2);
 
-            for (c0, c1) in neighbors {
-                let cost_decrease = initial_cost + tsp[(c0, c1)];
-                let cost_increase = tsp[(v0, c0)] + tsp[(v1, c1)];
+            for (b0, b1) in neighbors {
+                let cost_decrease = initial_cost + tsp[(b0, b1)];
+                let cost_increase = tsp[(a0, b0)] + tsp[(a1, b1)];
 
                 if cost_decrease > cost_increase {
-                    return Some(((v0, v1), (c0, c1)));
+                    return Some(((a0, a1), (b0, b1)));
                 }
             }
 
@@ -72,7 +71,7 @@ pub fn gls(tsp: &SymmetricMatrix, steps: usize) -> Route {
         };
 
         // Find the maximum utility
-        // The edge buffer will have the correct edges because the last iteration of the local search doesn't change edges.
+        // The edge buffer will have the correct edges because the last iteration of the local search doesn't change the path.
         let max_utility = edge_buffer
             .iter()
             .copied()

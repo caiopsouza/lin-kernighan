@@ -122,31 +122,23 @@ impl Path
         self.check_hamiltonian() == HamiltonianResult::Ok
     }
 
+    #[inline]
+    fn twist_helper(&mut self, v0: usize, v1: usize, value: usize) {
+        let adj = &mut self[v0];
+        let adj = if adj.0 == v1 { &mut adj.0 } else { &mut adj.1 };
+        debug_assert_eq!(*adj, v1);
+        *adj = value;
+    }
+
     /// Twist two edges.
     /// Don't even try to understand this because I didn't.
     /// Let's just hope `is_hamiltonian` can find potential bugs.
     #[inline]
-    pub fn twist(&mut self, (i0, v0): (usize, usize), (i1, v1): (usize, usize)) {
-        let a0 = &mut self[i0];
-        let a0 = if a0.0 == v0 { &mut a0.0 } else { &mut a0.1 };
-        debug_assert_eq!(*a0, v0);
-        *a0 = i1;
-
-        let a0_next = &mut self[v0];
-        let a0_next = if a0_next.0 == i0 { &mut a0_next.0 } else { &mut a0_next.1 };
-        debug_assert_eq!(*a0_next, i0);
-        *a0_next = v1;
-
-        let a1 = &mut self[i1];
-        let a1 = if a1.0 == v1 { &mut a1.0 } else { &mut a1.1 };
-        debug_assert_eq!(*a1, v1);
-        *a1 = i0;
-
-        let a1_next = &mut self[v1];
-        let a1_next = if a1_next.0 == i1 { &mut a1_next.0 } else { &mut a1_next.1 };
-        debug_assert_eq!(*a1_next, i1);
-        *a1_next = v0;
-
+    pub fn twist(&mut self, (a0, a1): (usize, usize), (b0, b1): (usize, usize)) {
+        self.twist_helper(a0, a1, b0);
+        self.twist_helper(a1, a0, b1);
+        self.twist_helper(b0, b1, a0);
+        self.twist_helper(b1, b0, a1);
         debug_assert!(self.is_hamiltonian());
     }
 }
