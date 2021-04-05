@@ -3,6 +3,7 @@ use tsplib::Tsp;
 use crate::matrix::SymmetricMatrix;
 use crate::path::Path;
 use crate::route::Route;
+use std::borrow::Borrow;
 
 pub mod matrix;
 pub mod path;
@@ -10,12 +11,21 @@ pub mod route;
 
 fn local_search_step(tsp: &SymmetricMatrix, candidate: &mut Path, edge_buffer: &mut Vec<(usize, usize)>) -> Option<((usize, usize), (usize, usize))> {
     // TODO: Implement IndexedParallelIterator to avoid having to collect. `par_bridge` has worse performance.
-    candidate.edges_visited_buffered(edge_buffer)
+    candidate.edges_visited_buffered(edge_buffer);
+
+    edge_buffer
         .par_iter()
-        .find_map_any(|&(v0, v1)| {
+        .copied()
+        .enumerate()
+        .find_map_any(|(i, (v0, v1))| {
             let initial_cost = tsp[(v0, v1)];
 
-            for (c0, c1) in candidate.edges_visited_after(v0, v1) {
+            let neighbors = (edge_buffer.borrow() as &Vec<(usize, usize)>)
+                .into_iter()
+                .copied()
+                .skip(i + 2);
+
+            for (c0, c1) in neighbors {
                 let cost_decrease = initial_cost + tsp[(c0, c1)];
                 let cost_increase = tsp[(v0, c0)] + tsp[(v1, c1)];
 

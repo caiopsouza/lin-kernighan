@@ -85,10 +85,9 @@ impl Path
         }
     }
 
-    pub fn edges_visited_buffered<'a>(&self, buffer: &'a mut Vec<(usize, usize)>) -> &'a Vec<(usize, usize)> {
+    pub fn edges_visited_buffered(&self, buffer: &mut Vec<(usize, usize)>) {
         buffer.clear();
         buffer.extend(self.edges_visited());
-        buffer
     }
 
     /// Check if the path is complete and Hamiltonian.
