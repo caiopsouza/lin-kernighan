@@ -130,16 +130,20 @@ impl Path
         *adj = value;
     }
 
-    /// Twist two edges.
-    /// Don't even try to understand this because I didn't.
-    /// Let's just hope `is_hamiltonian` can find potential bugs.
+    /// Twist two edges. Visualization (:: implies an indirect connection):
+    ///
+    /// ```
+    /// a0 — a1      a0   a1      a0 — b0
+    /// ::   ::  ->  :: x ::  or  ::   ::
+    /// b1 — b0      b1   b0      b1 — a1
+    /// ```
     #[inline]
     pub fn twist(&mut self, (a0, a1): (usize, usize), (b0, b1): (usize, usize)) {
         self.twist_helper(a0, a1, b0);
         self.twist_helper(a1, a0, b1);
         self.twist_helper(b0, b1, a0);
         self.twist_helper(b1, b0, a1);
-        debug_assert!(self.is_hamiltonian());
+        debug_assert!(self.is_hamiltonian(), "not hamiltonian after: {:?}", ((a0, a1), (b0, b1)));
     }
 }
 

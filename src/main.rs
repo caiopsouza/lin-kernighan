@@ -1,25 +1,21 @@
 use rayon::prelude::*;
 use tsplib::Tsp;
 use crate::matrix::SymmetricMatrix;
-use crate::path::Path;
 use crate::route::Route;
 
 pub mod matrix;
 pub mod path;
 pub mod route;
 
-fn local_search_step(tsp: &SymmetricMatrix, candidate: &mut Path, edge_buffer: &mut Vec<(usize, usize)>) -> Option<((usize, usize), (usize, usize))> {
-    // TODO: Implement IndexedParallelIterator to avoid having to collect. `par_bridge` has worse performance.
-    candidate.edges_visited_buffered(edge_buffer);
-
-    edge_buffer
+fn local_search_step(tsp: &SymmetricMatrix, candidate_edges: &[(usize, usize)]) -> Option<((usize, usize), (usize, usize))> {
+    candidate_edges
         .par_iter()
         .copied()
         .enumerate()
         .find_map_any(|(i, (a0, a1))| {
             let initial_cost = tsp[(a0, a1)];
 
-            let neighbors = (&*edge_buffer)
+            let neighbors = candidate_edges
                 .into_iter()
                 .copied()
                 .skip(i + 2);
@@ -38,8 +34,11 @@ fn local_search_step(tsp: &SymmetricMatrix, candidate: &mut Path, edge_buffer: &
 }
 
 pub fn local_search(tsp: &SymmetricMatrix, candidate: &mut Route, edge_buffer: &mut Vec<(usize, usize)>) {
-    while let Some((v, c)) = local_search_step(tsp, &mut candidate.path, edge_buffer) {
-        candidate.path.twist(v, c)
+    while let Some((a, b)) = {
+        candidate.path.edges_visited_buffered(edge_buffer);
+        local_search_step(tsp, &edge_buffer)
+    } {
+        candidate.path.twist(a, b);
     }
 }
 
@@ -91,6 +90,7 @@ pub fn gls(tsp: &SymmetricMatrix, steps: usize) -> Route {
 
     // Guarantee it's at least on a local minimum
     local_search(&tsp, &mut route, &mut edge_buffer);
+    assert!(route.path.is_hamiltonian());
     route.cost = tsp.cost(&route.path);
 
     println!("{}", route.cost);
